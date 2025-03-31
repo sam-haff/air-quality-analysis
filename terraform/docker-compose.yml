@@ -1,0 +1,53 @@
+
+### docker-compose for the GCP compute instance ###
+
+volumes:
+  postgres-data:
+    driver: local
+  kestra-data:
+    driver: local
+
+services:
+  kestra:
+    image: kestra/kestra:latest
+    pull_policy: always
+    # Note that this setup with a root user is intended for development purpose.
+    # Our base image runs without root, but the Docker Compose implementation needs root to access the Docker socket
+    # To run Kestra in a rootless mode in production, see: https://kestra.io/docs/installation/podman-compose
+    user: "root"
+    command: server standalone
+    volumes:
+      - kestra-data:/app/storage
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /tmp/kestra-wd:/tmp/kestra-wd
+    environment:
+      KESTRA_CONFIGURATION: |
+        datasources:
+          postgres:
+            url: jdbc:postgresql://<your db address>:5432/kestra
+            driverClassName: org.postgresql.Driver
+            username: <your db user>
+            password: <your db pwd>
+        kestra:
+          server:
+            basicAuth:
+              enabled: true
+              username: <your kestra user/email> # it must be a valid email address
+              password: <your kestra pwd>
+          repository:
+            type: postgres
+          storage:
+            type: gcs
+            gcs:
+              bucket: kestra-service-bucket
+              project-id: kestra-de
+              serviceAccount: <your creds>
+          queue:
+            type: postgres
+          tasks:
+            tmpDir:
+              path: /tmp/kestra-wd/tmp
+          url: http://localhost:8080/
+    ports:
+      - "8080:8080"
+      - "8081:8081"
