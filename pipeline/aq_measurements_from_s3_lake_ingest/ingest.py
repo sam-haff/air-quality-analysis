@@ -67,7 +67,7 @@ for loc_id in loc_ids:
         try:
             s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/*'
             gcs_dst_dir = urljoin(gs_data_bucket, f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/')
-            correct = subprocess.run(['gsutil', 'cp', '-R', s3_src_dir, gcs_dst_dir], check=True, text=True ) # shell=True is for windows ONLY
+            correct = subprocess.run(['gsutil', '-m', 'cp', '-R', s3_src_dir, gcs_dst_dir], check=True, text=True ) # shell=True is for windows ONLY
         except Exception as e:
             print(f'Exception occured: {e=}. Moving to the next year...')
             continue
