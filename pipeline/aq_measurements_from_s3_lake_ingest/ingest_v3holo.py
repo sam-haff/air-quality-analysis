@@ -18,19 +18,19 @@ def urljoin(*args, ispath=True):
     return res
 
 
-gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
-ingest_from_year = os.environ["AQ_FROM_YEAR"]
-ingest_from_month= os.environ["AQ_FROM_MO"]
-ingest_to_year = os.environ["AQ_TO_YEAR"]
-ingest_to_month = os.environ["AQ_TO_MO"]
-ingest_country_name = os.environ["AQ_COUNTRY_NAME"]
+#gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
+#ingest_from_year = os.environ["AQ_FROM_YEAR"]
+#ingest_from_month= os.environ["AQ_FROM_MO"]
+#ingest_to_year = os.environ["AQ_TO_YEAR"]
+#ingest_to_month = os.environ["AQ_TO_MO"]
+#ingest_country_name = os.environ["AQ_COUNTRY_NAME"]
 
-#gs_data_bucket = 'gs://kestra-de-main-bucket/'
-#ingest_from_year = '2024'
-#ingest_from_month= '01'
-#ingest_to_year = '2025'
-#ingest_to_month = '03'
-#ingest_country_name = 'Slovakia'
+gs_data_bucket = 'gs://kestra-de-main-bucket/'
+ingest_from_year = '2024'
+ingest_from_month= '01'
+ingest_to_year = '2025'
+ingest_to_month = '03'
+ingest_country_name = 'Slovakia'
 
 ingest_from_datetime_iso = f'{ingest_from_year}-{ingest_from_month}-01 00:00:00'
 
@@ -46,6 +46,48 @@ ingest_to_datetime_iso = f'{ingest_to_year_tmp}-{ingest_to_month_tmp}-01 00:00:0
 gs_raw_data_path =  '/aq/raw/'
 gs_raw_data_path_url = urljoin(gs_data_bucket, gs_raw_data_path)
 gs_prod_data_path_url = urljoin(gs_data_bucket, '/aq/data/')
+
+
+
+
+
+from google.cloud import storage
+
+storage_client = storage.Client()
+bucket = storage_client.bucket(gs_data_bucket[5:len(gs_data_bucket)-1]) # TODO: be careful
+print("Yay!")
+print("Printing all the mo.......")
+for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
+    year_dir = f'./tmp/{year}/'
+    subdirs = [x[0] for x in os.walk(year_dir)]
+    subdirs = subdirs[1:]
+    print(subdirs)
+    for subdir in subdirs:
+        mo = subdir[-2:]
+
+        partial_dfs = []
+        for p in pathlib.Path(subdir+'/').glob("*.csv.gz"):
+            partial_dfs.append(pd.read_csv(p))
+
+        mo_df = pd.concat(partial_dfs)
+        print(mo_df.dtypes)
+        mo_df['datetime'] = pd.to_datetime(mo_df['datetime'])
+        mo_df.to_parquet(f'./tmp/{mo}.parquet') 
+        print(mo_df.dtypes)
+
+        gcs_path = f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/{mo}.parquet'
+        blob = bucket.blob(gcs_path)
+        #blob.upload_from_filename(f'./tmp/{mo}.parquet')
+        print(f'Packed and sent: {year}/{mo}.parquet')
+exit(1)
+
+
+
+
+
+
+
+
 
 print('URL: ', gs_raw_data_path_url)
 gs_locations_path = urljoin(gs_raw_data_path_url, '/sensors_topology/locs/')
@@ -110,8 +152,7 @@ for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
             partial_dfs.append(pd.read_csv(p))
 
         mo_df = pd.concat(partial_dfs)
-
-        mo_df.datetime = mo_df.datetime.pipe(pd.to_datetime).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
+        print(mo_df.dtypes)
         mo_df.to_parquet(f'./tmp/{mo}.parquet') 
 
         gcs_path = f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/{mo}.parquet'
