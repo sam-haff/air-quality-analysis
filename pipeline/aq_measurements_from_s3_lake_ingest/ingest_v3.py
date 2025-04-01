@@ -110,6 +110,7 @@ for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
             partial_dfs.append(pd.read_csv(p))
 
         mo_df = pd.concat(partial_dfs)
+        mo_df['datetime'] = pd.to_datetime(mo_df['datetime'])
         mo_df.to_parquet(f'./tmp/{mo}.parquet') 
 
         gcs_path = f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/{mo}.parquet'
