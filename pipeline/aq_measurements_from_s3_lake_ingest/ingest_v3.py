@@ -110,8 +110,10 @@ for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
             partial_dfs.append(pd.read_csv(p))
 
         mo_df = pd.concat(partial_dfs)
-
-        mo_df.datetime = pd.to_datetime(mo_df.datetime).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
+        print("chk")
+        print(mo_df.datetime)
+        print(pd.to_datetime(mo_df.datetime))
+        mo_df.datetime = pd.to_datetime(mo_df["datetime"]).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
         #mo_df.datetime = mo_df.datetime.pipe(pd.to_datetime).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
         mo_df.to_parquet(f'./tmp/{mo}.parquet') 
 
