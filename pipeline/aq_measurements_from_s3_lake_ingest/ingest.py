@@ -17,21 +17,21 @@ def urljoin(*args, ispath=True):
     return res
 
 
-#gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
-#ingest_from_year = os.environ["AQ_FROM_YEAR"]
-#ingest_from_month= os.environ["AQ_FROM_MO"]
-#ingest_to_year = os.environ["AQ_TO_YEAR"]
-#ingest_to_month = os.environ["AQ_TO_MO"]
+gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
+ingest_from_year = os.environ["AQ_FROM_YEAR"]
+ingest_from_month= os.environ["AQ_FROM_MO"]
+ingest_to_year = os.environ["AQ_TO_YEAR"]
+ingest_to_month = os.environ["AQ_TO_MO"]
 #ingest_country_code = os.environ("AQ_COUNTRY_CODE")
-#ingest_country_name = os.environ["AQ_COUNTRY_NAME"]
+ingest_country_name = os.environ["AQ_COUNTRY_NAME"]
 
-gs_data_bucket = 'gs://kestra-de-main-bucket/'
-ingest_from_year = '2024'
-ingest_from_month= '01'
-ingest_to_year = '2025'
-ingest_to_month = '03'
+#gs_data_bucket = 'gs://kestra-de-main-bucket/'
+#ingest_from_year = '2024'
+#ingest_from_month= '01'
+#ingest_to_year = '2025'
+#ingest_to_month = '03'
 #ingest_country_code = 'RO'
-ingest_country_name = 'Poland'
+#ingest_country_name = 'Poland'
 
 ingest_from_datetime_iso = f'{ingest_from_year}-{ingest_from_month}-01 00:00:00'
 
