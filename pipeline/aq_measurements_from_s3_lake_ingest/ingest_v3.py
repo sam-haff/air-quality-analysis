@@ -78,7 +78,7 @@ for loc_id in loc_ids:
             print('year: ', year)
             s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/'
             tmp_dst_dir = f'./tmp/{year}/'
-            correct = subprocess.run(['aws', 's3', 'cp', s3_src_dir, tmp_dst_dir, '--recursive'], check=True, text=True, shell=True ) # shell=True is for windows ONLY
+            correct = subprocess.run(['aws', 's3', 'cp', s3_src_dir, tmp_dst_dir, '--recursive'], check=True, text=True)#, shell=True ) # shell=True is for windows ONLY
         except Exception as e:
             print(f'Exception occured: {e=}. Moving to the next year...')
         #bound_mo = 12
