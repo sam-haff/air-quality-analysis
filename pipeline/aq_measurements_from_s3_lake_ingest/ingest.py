@@ -57,7 +57,7 @@ locations_df = locations_df[locations_df.datetime_last__utc >= ingest_from_datet
 locations_df = locations_df[locations_df.datetime_first__utc <= ingest_to_datetime_iso]
 
 loc_ids = locations_df.id.to_list()
-
+print(f'Number of locs: {len(loc_ids)}')
 
 location_idx = 0
 for loc_id in loc_ids:
