@@ -20,8 +20,8 @@ def urljoin(*args, ispath=True):
 gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
 ingest_from_year = os.environ("AQ_FROM_YEAR")
 ingest_from_month= os.environ("AQ_FROM_MO")
-ingest_to_year = os.environ("AQ_DATETIME_TO_YEAR")
-ingest_to_month = os.environ("AQ_DATETIME_TO_MO")
+ingest_to_year = os.environ("AQ_TO_YEAR")
+ingest_to_month = os.environ("AQ_TO_MO")
 #ingest_country_code = os.environ("AQ_COUNTRY_CODE")
 ingest_country_name = os.environ("AQ_COUNTRY_NAME")
 
@@ -58,8 +58,11 @@ locations_df = locations_df[locations_df.datetime_first__utc <= ingest_to_dateti
 
 loc_ids = locations_df.id.to_list()
 
+
 location_idx = 0
 for loc_id in loc_ids:
+    print(f'Loading measurements for loc {location_idx}/{len(loc_ids)}')
+
     for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
         try:
             s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/*'
