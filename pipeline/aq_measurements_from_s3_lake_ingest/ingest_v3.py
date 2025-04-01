@@ -114,7 +114,8 @@ for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
         print("chk")
         print(mo_df.datetime)
         print(pd.to_datetime(mo_df.datetime))
-        mo_df['datetime'] = pd.to_datetime(mo_df['datetime'])
+        mo_df['datetime'] = pd.to_datetime(mo_df['datetime'], utc=True)
+        mo_df['datetime'] = pd.to_datetime(mo_df["datetime"]).apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S.%f'))
 
         #mo_df.datetime = pd.to_datetime(mo_df["datetime"]).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
         #mo_df.datetime = mo_df.datetime.pipe(pd.to_datetime).dt.tz_convert('UTC').apply(lambda x: datetime.datetime.strftime(x, '%y-%m-%dT%H:%M:%S.00Z'))#pd.Timestamp.isoformat) + 'Z'
