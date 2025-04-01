@@ -70,7 +70,7 @@ for loc_id in loc_ids:
             correct = subprocess.run(['gsutil', '-m', 'cp', '-R', s3_src_dir, gcs_dst_dir], check=True, text=True ) # shell=True is for windows ONLY
         except Exception as e:
             print(f'Exception occured: {e=}. Moving to the next year...')
-            continue
+        location_idx += 1
         bound_mo = 12
         if year == ingest_to_year:
             bound_mo = ingest_to_month 
