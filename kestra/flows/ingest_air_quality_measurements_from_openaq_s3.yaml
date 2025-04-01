@@ -21,6 +21,12 @@ inputs:
   - id: to_month
     type: INT
     defaults: 3
+  - id: ingest_to_gs
+    type: BOOLEAN
+    defaults: true
+  - id: ingest_to_bq
+    type: BOOLEAN
+    defaults: true
 
 variables:
   years_list: "{{ range(inputs.from_year, inputs.to_year)}}"
@@ -53,7 +59,7 @@ tasks:
     tasks:
       - id: ingest_to_gcs
         type: io.kestra.plugin.scripts.python.Commands
-        runIf: "true"
+        runIf: "{{inputs.ingest_to_gs}}"
         namespaceFiles:
           enabled: true
         taskRunner:
@@ -73,6 +79,7 @@ tasks:
         commands:
           - python ingest_v3.py
       - id: for_each_year
+        runIf: "{{inputs.ingest_to_bq}}"
         type: io.kestra.plugin.core.flow.ForEach
         values: "{{ render(vars.years_list) }}"
         tasks:
@@ -93,7 +100,7 @@ tasks:
           - id: create_target_resident_table
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
-              CREATE IF NOT EXISTS TABLE `{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements`(
+              CREATE TABLE IF NOT EXISTS `{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements`(
                 location_id INT64,
                 sensors_id INT64,
                 location STRING,
@@ -103,7 +110,11 @@ tasks:
                 parameter STRING,
                 units STRING,
                 value FLOAT64
-              );
+              )
+              PARTITION BY
+                TIMESTAMP_TRUNC(datetime, MONTH)
+              CLUSTER BY
+                parameter;
           - id: from_ext_to_resident_table
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
@@ -128,11 +139,3 @@ tasks:
                 units,
                 value
               FROM `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext`;              
-
-        
-
-
-
-
-
-  

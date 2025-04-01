@@ -7,6 +7,7 @@ print(df.datetime)
 df['datetime'] = pd.to_datetime(df["datetime"]).apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 print(df.datetime)
+print(df)
 #1732665600000000000
 
 #df = pd.read_parquet('./tmp/06.parquet')
