@@ -1,5 +1,6 @@
 import subprocess
 import pandas as pd
+import os
 import datetime
 
 def urljoin(*args, ispath=True):
@@ -16,21 +17,21 @@ def urljoin(*args, ispath=True):
     return res
 
 
-#gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] # TODO: change to DLT enr var so that we are not setting same value twice
-#ingest_from_year = os.environ("AQ_FROM_YEAR")
-#ingest_from_month= os.environ("AQ_FROM_MO")
-#ingest_to_year = os.environ("AQ_DATETIME_TO_YEAR")
-#ingest_to_month = os.environ("AQ_DATETIME_TO_MO")
+gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
+ingest_from_year = os.environ("AQ_FROM_YEAR")
+ingest_from_month= os.environ("AQ_FROM_MO")
+ingest_to_year = os.environ("AQ_DATETIME_TO_YEAR")
+ingest_to_month = os.environ("AQ_DATETIME_TO_MO")
 #ingest_country_code = os.environ("AQ_COUNTRY_CODE")
-#ingest_country_name = os.environ("AQ_COUNTRY_NAME")
+ingest_country_name = os.environ("AQ_COUNTRY_NAME")
 
-gs_data_bucket = 'gs://kestra-de-main-bucket/'
-ingest_from_year = '2024'
-ingest_from_month= '01'
-ingest_to_year = '2025'
-ingest_to_month = '03'
-ingest_country_code = 'RO'
-ingest_country_name = 'Romania'
+#gs_data_bucket = 'gs://kestra-de-main-bucket/'
+#ingest_from_year = '2024'
+#ingest_from_month= '01'
+#ingest_to_year = '2025'
+#ingest_to_month = '03'
+#ingest_country_code = 'RO'
+#ingest_country_name = 'Romania'
 
 ingest_from_datetime_iso = f'{ingest_from_year}-{ingest_from_month}-01 00:00:00'
 
@@ -47,23 +48,16 @@ gs_raw_data_path =  '/aq/raw/'
 gs_raw_data_path_url = urljoin(gs_data_bucket, gs_raw_data_path)
 gs_prod_data_path_url = urljoin(gs_data_bucket, '/aq/data/')
 
-
 print('URL: ', gs_raw_data_path_url)
 gs_locations_path = urljoin(gs_raw_data_path_url, '/sensors_topology/locs/')
 locations_df = pd.read_parquet(gs_locations_path)
 
-locations_df = locations_df[locations_df.country__code == ingest_country_code]
+locations_df = locations_df[locations_df.country__name == ingest_country_name]
 locations_df = locations_df[locations_df.datetime_last__utc >= ingest_from_datetime_iso]   # if not ingest_from > last and not ingest_to < first
 locations_df = locations_df[locations_df.datetime_first__utc <= ingest_to_datetime_iso]
 
 loc_ids = locations_df.id.to_list()
-#print(ids)
-#exit(0)
 
-#''.l
-#TODO collect all locations for country code
-
-# TODO check all the env vars to not be unset
 location_idx = 0
 for loc_id in loc_ids:
     for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
