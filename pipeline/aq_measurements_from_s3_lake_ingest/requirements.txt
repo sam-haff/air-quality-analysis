@@ -2,3 +2,4 @@ pandas
 pyarrow
 fsspec
 gcsfs
+google-cloud-storage

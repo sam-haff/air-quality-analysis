@@ -2,6 +2,7 @@ import subprocess
 import pandas as pd
 import os
 import datetime
+import pathlib
 
 def urljoin(*args, ispath=True):
     """
@@ -29,7 +30,7 @@ ingest_country_name = os.environ["AQ_COUNTRY_NAME"]
 #ingest_from_month= '01'
 #ingest_to_year = '2025'
 #ingest_to_month = '03'
-#ingest_country_name = 'Poland'
+#ingest_country_name = 'Slovakia'
 
 ingest_from_datetime_iso = f'{ingest_from_year}-{ingest_from_month}-01 00:00:00'
 
@@ -56,28 +57,62 @@ locations_df = locations_df[locations_df.datetime_first__utc <= ingest_to_dateti
 
 loc_ids = locations_df.id.to_list()
 print(f'Number of locs: {len(loc_ids)}')
-#aws s3 cp
+
+import shutil
+def clean_dir(dir):
+    shutil.rmtree(dir)
+    os.mkdir(dir) 
+
+if pathlib.Path('./tmp').exists():
+    clean_dir('./tmp')
+else:
+    os.mkdir('./tmp')
+
+# accumulate data locally
 location_idx = 0
 for loc_id in loc_ids:
     print(f'Loading measurements for loc {location_idx}/{len(loc_ids)}')
 
     for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
         try:
-            s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/*'
-            gcs_dst_dir = urljoin(gs_data_bucket, f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/')
-            correct = subprocess.run(['gsutil', '-m', 'cp', '-R', s3_src_dir, gcs_dst_dir], check=True, text=True ) # shell=True is for windows ONLY
+            print('year: ', year)
+            s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/'
+            tmp_dst_dir = f'./tmp/{year}/'
+            correct = subprocess.run(['aws', 's3', 'cp', s3_src_dir, tmp_dst_dir, '--recursive'], check=True, text=True, shell=True ) # shell=True is for windows ONLY
         except Exception as e:
             print(f'Exception occured: {e=}. Moving to the next year...')
-        location_idx += 1
-        bound_mo = 12
-        if year == ingest_to_year:
-            bound_mo = ingest_to_month 
-        #for month in range(int(ingest_from_month), int(ingest_to_month)+1):
-        #    s3_src_dir = f's3://openaq-data-archive/records/csv.gz/locationid={loc_id}/year={year}/month={month:02d}/'
-        #    gcs_dst_dir = urljoin(gs_data_bucket, f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/')
-        #    print('copying to ', gcs_dst_dir)
-            #gsutil -m cp -R s3://openaq-data-archive/records gs://kestra-de-main-bucket/openaq-data/
-            #gcloud storage cp -m s3://openaq-data-archive/records/ gs://kestra-de-main-bucket/openaq-data/ --recursive
+        #bound_mo = 12
+        #if year == ingest_to_year:
+        #    bound_mo = ingest_to_month 
+    
+    location_idx += 1
 
-        #    correct = subprocess.run(['gsutil', '-m', 'cp', '-R', s3_src_dir, gcs_dst_dir], check=True, text=True, shell=True) # shell=True is for windows ONLY
-            #correct = subprocess.run(['g', 'storage', 'cp', s3_src_dir, gcs_dst_dir, '--recursive'], check=True, text=True, shell=True) # shell=True is for windows ONLY
+# Eliminating that microfiles nightmare
+# by packaging all locs and days data together
+# into per month files.
+# Then send it to the lake!
+from google.cloud import storage
+
+storage_client = storage.Client()
+bucket = storage_client.bucket(gs_data_bucket[5:len(gs_data_bucket)-1]) # TODO: be careful
+print("Yay!")
+print("Printing all the mo.......")
+for year in range(int(ingest_from_year), int(ingest_to_year) + 1):
+    year_dir = f'./tmp/{year}/'
+    subdirs = [x[0] for x in os.walk(year_dir)]
+    subdirs = subdirs[1:]
+    print(subdirs)
+    for subdir in subdirs:
+        mo = subdir[-2:]
+
+        partial_dfs = []
+        for p in pathlib.Path(subdir+'/').glob("*.csv.gz"):
+            partial_dfs.append(pd.read_csv(p))
+
+        mo_df = pd.concat(partial_dfs)
+        mo_df.to_parquet(f'./tmp/{mo}.parquet') 
+
+        gcs_path = f'aq/raw/measurements/{ingest_country_name.lower()}/{year}/{mo}.parquet'
+        blob = bucket.blob(gcs_path)
+        blob.upload_from_filename(f'./tmp/{mo}.parquet')
+        print(f'Packed and sent: {year}/{mo}.parquet')

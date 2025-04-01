@@ -1,3 +1,5 @@
 .venv
 sk.txt
 *.duckdb
+*.csv.gz
+*.parquet
