@@ -1,0 +1,34 @@
+id: ingest_air_quality_sensors_topology
+namespace: company.team
+
+concurrency:
+  limit: 1
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT')}}"
+      location: "{{kv('GCP_LOC')}}"
+      bucket: "{{kv('GCP_BUCKET')}}"
+  
+tasks:
+  - id: sync
+    type: io.kestra.plugin.git.SyncNamespaceFiles
+    url: "{{ kv('GIT_REPO_URL') }}"
+    namespace: "{{ flow.namespace }}"
+    gitDirectory: "pipeline/aq_topology_lake_ingest"
+
+  - id: download_sensors_topology
+    namespaceFiles:
+      enabled: true
+    type: io.kestra.plugin.scripts.python.Commands
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    env:
+      AQ_DATA_BUCKET_URL: "{{ kv('AQ_DATA_BUCKET_URL') }}"
+      DESTINATION__FILESYSTEM__BUCKET_URL: "{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/"
+    beforeCommands:
+      - pip install -r requirements.txt
+    commands:
+      - python aq_topology_ingest.py
