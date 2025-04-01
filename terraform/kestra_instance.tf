@@ -12,7 +12,7 @@ resource "google_compute_instance" "kestra-inst" {
 
     initialize_params {
       image = "projects/ubuntu-os-cloud/global/images/ubuntu-2204-jammy-v20250128"
-      size  = 10
+      size  = 30
       type  = "pd-balanced"
     }
 
@@ -51,7 +51,7 @@ resource "google_compute_instance" "kestra-inst" {
 
   service_account {
     email  = "zoomcamp-2@kestra-de.iam.gserviceaccount.com"
-    scopes = ["https://www.googleapis.com/auth/devstorage.read_only", "https://www.googleapis.com/auth/logging.write", "https://www.googleapis.com/auth/monitoring.write", "https://www.googleapis.com/auth/service.management.readonly", "https://www.googleapis.com/auth/servicecontrol", "https://www.googleapis.com/auth/trace.append"]
+    scopes = ["cloud-platform"]
   }
 
   shielded_instance_config {
