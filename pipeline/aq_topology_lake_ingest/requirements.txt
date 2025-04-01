@@ -1,4 +1,6 @@
 pandas
 fsspec
 gcsfs
+dlt
 dlt[gs]
+pyarrow
