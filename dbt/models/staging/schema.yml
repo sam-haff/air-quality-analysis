@@ -1,0 +1,21 @@
+version: 2
+sources:
+  - name: staging
+    database: kestra-de
+    schema: bq_dataset
+    tables:
+      - name: m_measurements
+      - name: sensors_topology_locs
+models:
+  - name: stg_measurements
+    description: ""
+    columns:
+      - name: location_id
+        data_type: int64
+        description: ""
+  - name: stg_locs
+    description: ""
+    columns:
+      - name: id
+        data_type: int64
+        description: ""

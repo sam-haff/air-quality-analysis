@@ -1,0 +1,9 @@
+version: 2
+
+models:
+  - name: dim_measurements_with_pollution_ratio
+    description: >
+      Measurements with calculated value/safe level ration. 
+  - name: fact_latest_measurements
+    description: >
+      Latest measurements per location.
