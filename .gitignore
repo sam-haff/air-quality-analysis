@@ -3,3 +3,4 @@ sk.txt
 *.duckdb
 *.csv.gz
 *.parquet
+check.py

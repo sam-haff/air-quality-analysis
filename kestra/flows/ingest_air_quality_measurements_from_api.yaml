@@ -1,0 +1,122 @@
+id: ingest_air_quality_measurements_from_api_microtimeframes
+namespace: company.team
+
+concurrency:
+  limit: 1
+
+inputs:
+  - id: countries
+    type: ARRAY
+    itemType: STRING
+    defaults: ["Poland"]
+  - id: from_datetime
+    type: DATETIME
+    defaults: "2013-08-09T14:19:00Z"
+  - id: to_datetime
+    type: DATETIME
+    defaults: "2013-08-09T14:19:00Z"
+  - id: ingest_to_gs
+    type: BOOLEAN
+    defaults: true
+  - id: ingest_to_bq
+    type: BOOLEAN
+    defaults: true
+
+variables:
+  dlt_download_path: "{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/"
+  prepared_realtime_data_path: "{{ kv('AQ_DATA_BUCKET_URL')}}aq/data/realtime_measurements/realtime.parquet"
+  years_list: "{{ range(inputs.from_year, inputs.to_year)}}"
+  bq_measurements_table: "{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements"
+  bq_reatime_ext_table: "{{kv('GCP_PROJECT')}}.bq_dataset.tmp_realtime_ext"
+
+triggers:
+  - id: every_8_h
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "1 */8 * * *"
+    inputs:
+      countries: ["Poland", "Slovakia", "Hungary"]
+      from_datetime: |
+        {{ (now() | dateAdd(-8, 'HOURS')) | date("yyyy-MM-dd'T'HH:mm:ss", timeZone="UTC") }}
+      to_datetime: |
+        {{ now() | date("yyyy-MM-dd'T'HH:mm:ss", timeZone="UTC") }}
+
+pluginDefaults:
+  - type: io.kestra.plugin.gcp
+    values:
+      serviceAccount: "{{kv('GCP_CREDS')}}"
+      projectId: "{{kv('GCP_PROJECT')}}"
+      location: "{{kv('GCP_LOC')}}"
+      bucket: "{{kv('GCP_BUCKET')}}"
+
+tasks:
+  - id: set_labels
+    type: io.kestra.plugin.core.execution.Labels
+    labels:
+      countries: "{{ inputs.countries | join(', ') }}"
+      from: "{{ inputs.from_datetime }}"
+      to: "{{ inputs.to_datetime }}"
+  - id: sync
+    type: io.kestra.plugin.git.SyncNamespaceFiles
+    runIf: "{{inputs.ingest_to_gs}}"
+    url: "{{ kv('GIT_REPO_URL') }}"
+    namespace: "{{ flow.namespace }}"
+    gitDirectory: "pipeline/aq_measurements_lake_ingest"
+  
+  - id: ingest_to_lake
+    type: io.kestra.plugin.scripts.python.Commands
+    runIf: "{{inputs.ingest_to_gs}}"
+    namespaceFiles:
+      enabled: true
+    taskRunner:
+      type: io.kestra.plugin.core.runner.Process
+    env:
+      AQ_DATA_BUCKET_URL: "{{ kv('AQ_DATA_BUCKET_URL') }}"
+      AQ_FROM_DATETIME_UTC: "{{ inputs.from_datetime }}"
+      AQ_TO_DATETIME_UTC: "{{inputs.to_datetime }}"
+      AQ_COUNTRY_NAMES: "{{ inputs.countries | join(',') }}"
+      AQ_API_LIMIT: "20"
+      DESTINATION__FILESYSTEM__BUCKET_URL: "{{render(vars.dlt_download_path)}}"
+
+    beforeCommands:
+      - pip install -r requirements.txt
+    commands:
+      - python ingest.py
+  - id: create_ext_table
+    type: "io.kestra.plugin.gcp.bigquery.Query"
+    sql: |
+      CREATE OR REPLACE EXTERNAL TABLE `{{render(vars.bq_reatime_ext_table)}}`(
+        location_id INT64,
+        sensors_id INT64,
+        location STRING,
+        datetime STRING,
+        lat FLOAT64,
+        lon FLOAT64,
+        parameter STRING,
+        units STRING,
+        value FLOAT64
+      ) OPTIONS(format="PARQUET", uris=["{{render(vars.prepared_realtime_data_path)}}"])
+  - id: create_target_resident_table
+    type: "io.kestra.plugin.gcp.bigquery.Query"
+    sql: |
+      CREATE TABLE IF NOT EXISTS `{{render(vars.bq_measurements_table)}}`(
+        location_id INT64,
+        sensors_id INT64,
+        location STRING,
+        datetime DATETIME,
+        lat FLOAT64,
+        lon FLOAT64,
+        parameter STRING,
+        units STRING,
+        value FLOAT64
+      )
+      PARTITION BY
+        TIMESTAMP_TRUNC(datetime, MONTH)
+      CLUSTER BY
+        parameter;
+  - id: merge_ext_to_target_table
+    type: "io.kestra.plugin.gcp.bigquery.Query"
+    sql: |
+      MERGE `{{render(vars.bq_measurements_table)}}` T
+      USING `{{render(vars.bq_reatime_ext_table)}}` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id
+      WHEN MATCHED THEN UPDATE SET value = s.value
+      WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);

@@ -1,5 +1,8 @@
 """
 Ingest data on micro timeframes. Ingest N last hours.
+Uses openaq api. Slow because of ratelimits, but it's the only way 
+to get the up to date data.
+The ingesting via API is done using DLT.
 """
 
 import dlt
@@ -9,7 +12,6 @@ from dlt.sources.helpers import requests
 import pandas as pd
 
 import os
-from datetime import datetime, timedelta
 
 def urljoin(*args, ispath=True):
     """
@@ -109,25 +111,15 @@ def openaq_measurements():
             sensors_processed += 1
             print("Finished loading a sensor. Sensors loaded: ", sensors_processed)
 
-#from_part = 'bom'#datetime.datetime.fromisoformat(ingest_from_datetime).strftime("%Y_%m_%d_%H_%M_%S")
-#to_part = 'pom'#datetime.datetime.fromisoformat(ingest_to_datetime).strftime("%Y_%m_%d_%H_%M_%S")
 pipeline_name = "open_aq_measurements_load"
-dataset_name = 'realtime'#f'{from_part}__{to_part}' 
+dataset_name = 'realtime'
 table_name = "measurements"
 
 pipeline = dlt.pipeline(destination="filesystem", pipeline_name=pipeline_name, dataset_name=dataset_name)
 load_info = pipeline.run(openaq_measurements, table_name=table_name, loader_file_format="parquet", write_disposition="replace")
 
 print("Download finished.")
-
 print("Start processing...")
-
-
-#loaded_data_path = urljoin(gs_raw_data_path_url, f'/{dataset_name}/', f'/{table_name}/')
-#df = pd.read_parquet(loaded_data_path + '*')
-
-#local_data_path = "C:/aq_data/check/realtime/measurements/"
-#df = pd.read_parquet(local_data_path)
 
 raw_data_path = urljoin(dlt_download_path, 'realtime/measurements/')
 df = pd.read_parquet(raw_data_path)
@@ -139,6 +131,4 @@ df['datetime'] = pd.to_datetime(df["datetime"]).apply(lambda x: x.strftime('%Y-%
 
 gs_realtime_data_path = urljoin(gs_prod_data_path_url, '/realtime_measurements/', 'realtime.parquet', ispath=False)#urljoin(gs_data_bucket, '/aq/data/') 
 df.to_parquet(gs_realtime_data_path)
-#df = df.rename(columns={'period__datetime_from__utc':'datetime', 'parameter__name':'parameter', 'parameter__units': 'units'})
-#print(df)
 

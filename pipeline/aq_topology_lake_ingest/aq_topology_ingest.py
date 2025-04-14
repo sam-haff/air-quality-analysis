@@ -17,11 +17,7 @@ def urljoin(*args, ispath=True):
     return res
 
 
-gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] # TODO: change to DLT enr var so that we are not setting same value twice
-if len(gs_data_bucket) == 0:
-    print("No data bucket url is set")
-    exit(1)
-
+gs_data_bucket = os.environ["AQ_DATA_BUCKET_URL"] 
 gs_raw_data_path =  '/aq/raw/'
 gs_raw_data_path_url = urljoin(gs_data_bucket, gs_raw_data_path)
 gs_prod_data_path_url = urljoin(gs_data_bucket, '/aq/data/')
@@ -37,7 +33,7 @@ def openaq_locs():
             total_path=None
         )
     )
-
+    # TODO: add exception handling
     for page in client.paginate(params={"limit":"1000"}):
         yield page
         print("Downloaded ~1000 locs.")
@@ -61,12 +57,7 @@ enr_df = sensors_df.set_index('_dlt_parent_id').join(locs_df.set_index('_dlt_id'
 
 selected_cols = ['id_sensor', 'name_sensor', 'parameter__id', 'parameter__name', 'parameter__units', 'parameter__display_name', 'id_loc', 'name_loc', 'timezone', 'country__id', 'country__code', 'country__name', 'coordinates__latitude', 'coordinates__longitude', 'datetime_first__utc', 'datetime_last__utc']
 sensors_final_df = enr_df[selected_cols]
+sensors_final_df['datetime_first__utc'] = pd.to_datetime(sensors_final_df.datetime_first__utc, utc=True)
+sensors_final_df['datetime_last__utc'] = pd.to_datetime(sensors_final_df.datetime_last__utc, utc=True)
 gs_topology_output_path = urljoin(gs_prod_data_path_url, "/sensors_topology/topology.parquet", ispath=False)
 sensors_final_df.to_parquet(gs_topology_output_path)
-
-#romania_country_id = 74
-#romania_sensors_df = sensors_final_df[sensors_final_df.country__id == romania_country_id]
-#print(romania_sensors_df)
-#for t in romania_sensors_df.itertuples():
-#    print(t)
-#    break
