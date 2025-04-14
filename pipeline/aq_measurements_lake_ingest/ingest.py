@@ -28,14 +28,18 @@ gs_data_bucket = str(os.environ["AQ_DATA_BUCKET_URL"])
 ingest_country_names = str(os.environ["AQ_COUNTRY_NAMES"])
 ingest_from_datetime = str(os.environ["AQ_FROM_DATETIME_UTC"])
 ingest_to_datetime = str(os.environ["AQ_TO_DATETIME_UTC"])
-#api_limit = str(os.environ["AQ_API_LIMIT"]) # should be very small
-#gs_data_bucket = 
+api_limit = str(os.environ["AQ_API_LIMIT"]) # should be very small as it refers to records per sensor and we that script is meant to be for narrow timeframes
+
+# Keeping this in for local testing for now
+#gs_data_bucket = 'gs://kestra-de-main-bucket/'
 #ingest_country_names = 'Slovakia'
 #ingest_from_datetime = '2025-04-07T00:00:01'
 #ingest_to_datetime = '2025-04-07T08:00:00'
 
-api_limit = 20 #str(os.environ["AQ_API_LIMIT"]) # should be very small
-os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = "C:/aq_data/check/"
+#api_limit = 20 #str(os.environ["AQ_API_LIMIT"]) # should be very small
+#os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] = C:/aq_data/check/"
+
+dlt_download_path = os.environ["DESTINATION__FILESYSTEM__BUCKET_URL"] 
 
 print(f'Preparing to load realtime data for the following countries: {ingest_country_names}')
 
@@ -86,6 +90,9 @@ def openaq_measurements():
                         print('Got record', v)
                         v['lat'] = t.coordinates__latitude
                         v['lon'] = t.coordinates__longitude
+                        v['sensors_id'] = t.id_sensor
+                        v['location_id'] = t.id_loc
+                        v['location'] = t.name_loc
                     yield page
                     total_loaded += api_limit
                     print(f"Downloaded ~{api_limit} measurements. Total loaded: ", total_loaded)
@@ -112,10 +119,21 @@ print("Download finished.")
 
 print("Start processing...")
 
+
 #loaded_data_path = urljoin(gs_raw_data_path_url, f'/{dataset_name}/', f'/{table_name}/')
 #df = pd.read_parquet(loaded_data_path + '*')
 
 #local_data_path = "C:/aq_data/check/realtime/measurements/"
 #df = pd.read_parquet(local_data_path)
+
+raw_data_path = urljoin(dlt_download_path, 'realtime/measurements/')
+df = pd.read_parquet(raw_data_path)
+df = df[["location_id", "sensors_id", "location", "period__datetime_from__utc", "lat", "lon", "parameter__name", "parameter__units", "value"]]
+
+df = df.rename(columns={'period__datetime_from__utc':'datetime', 'parameter__name':'parameter', 'parameter__units': 'units'})
+
+gs_realtime_data_path = urljoin(gs_prod_data_path_url, '/realtime_measurements/', 'realtime.parquet', ispath=False)#urljoin(gs_data_bucket, '/aq/data/') 
+df.to_parquet(gs_realtime_data_path)
+#df = df.rename(columns={'period__datetime_from__utc':'datetime', 'parameter__name':'parameter', 'parameter__units': 'units'})
 #print(df)
 
