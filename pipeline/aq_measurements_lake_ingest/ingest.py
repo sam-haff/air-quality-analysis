@@ -134,6 +134,8 @@ df = pd.read_parquet(raw_data_path)
 df = df[["location_id", "sensors_id", "location", "period__datetime_from__utc", "lat", "lon", "parameter__name", "parameter__units", "value"]]
 
 df = df.rename(columns={'period__datetime_from__utc':'datetime', 'parameter__name':'parameter', 'parameter__units': 'units'})
+df['datetime'] = pd.to_datetime(df['datetime'], utc=True)
+df['datetime'] = pd.to_datetime(df["datetime"]).apply(lambda x: x.strftime('%Y-%m-%d %H:%M:%S.%f'))
 
 gs_realtime_data_path = urljoin(gs_prod_data_path_url, '/realtime_measurements/', 'realtime.parquet', ispath=False)#urljoin(gs_data_bucket, '/aq/data/') 
 df.to_parquet(gs_realtime_data_path)
