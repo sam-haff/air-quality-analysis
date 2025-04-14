@@ -28,7 +28,10 @@ gs_data_bucket = str(os.environ["AQ_DATA_BUCKET_URL"])
 ingest_country_names = str(os.environ["AQ_COUNTRY_NAMES"])
 ingest_from_datetime = str(os.environ["AQ_FROM_DATETIME_UTC"])
 ingest_to_datetime = str(os.environ["AQ_TO_DATETIME_UTC"])
-api_limit = str(os.environ["AQ_API_LIMIT"]) # should be very small as it refers to records per sensor and we that script is meant to be for narrow timeframes
+api_limit = int(os.environ["AQ_API_LIMIT"]) # should be very small as it refers to records per sensor and we that script is meant to be for narrow timeframes
+
+print('Scripts run ingesting the data from: ', ingest_from_datetime)
+print('Scripts run ingesting the data to: ', ingest_to_datetime)
 
 # Keeping this in for local testing for now
 #gs_data_bucket = 'gs://kestra-de-main-bucket/'
