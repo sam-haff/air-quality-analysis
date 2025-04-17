@@ -26,6 +26,8 @@ def urljoin(*args, ispath=True):
             
     return res
 
+aq_api_key = str(os.environ("AQ_API_KEY"))
+
 gs_data_bucket = str(os.environ["AQ_DATA_BUCKET_URL"])
 ingest_country_names = str(os.environ["AQ_COUNTRY_NAMES"])
 ingest_from_datetime = str(os.environ["AQ_FROM_DATETIME_UTC"])
@@ -62,18 +64,13 @@ def openaq_measurements():
     sensors_processed = 0
     total_loaded = 0
     for country in country_names:
+        print('country: ', country)
         print('from: ', ingest_from_datetime)
         print('to: ', ingest_to_datetime)
 
-        country_sensors = sensors_df[sensors_df.country__name== country]
-        print('Country sensors: ')
-        print(country_sensors)
+        country_sensors = sensors_df[sensors_df.country__name == country]
         country_sensors = country_sensors[country_sensors.datetime_last__utc >= ingest_from_datetime]   # if not ingest_from > last and not ingest_to < first. ingest_from > last or ingest_to < from
-        print('By from, filter:')
-        print(country_sensors)
         country_sensors = country_sensors[country_sensors.datetime_first__utc <= ingest_to_datetime]
-        print('By to, filter:')
-        print(country_sensors)
         
         sensors = list(country_sensors.itertuples())
         for t in sensors:
@@ -81,14 +78,14 @@ def openaq_measurements():
 
             client = RESTClient(
                 base_url=f"https://api.openaq.org/v3/sensors/{current_sensor}/measurements",
-                headers={"X-API-Key":"932148dc9fced6a1df5c6d006c2ab3ae249eb6076ad539c693487236ace264dc"},
+                headers={"X-API-Key":aq_api_key},
                 paginator=PageNumberPaginator(
                     base_page=1,
                     total_path=None
                 )
             )
 
-            print(f"Loading data for sensor id: {current_sensor}/{country_sensors.shape[0]}")
+            print(f"Loading data for sensor id: {current_sensor}. Processed {sensors_processed}/{country_sensors.shape[0]}")
             try:
                 for page in client.paginate(params={"limit":api_limit, "datetime_from":ingest_from_datetime, "datetime_to":ingest_to_datetime}):
                     for v in page:
