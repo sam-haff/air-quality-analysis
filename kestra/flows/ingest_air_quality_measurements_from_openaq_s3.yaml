@@ -27,6 +27,9 @@ inputs:
   - id: ingest_to_bq
     type: BOOLEAN
     defaults: true
+  - id: do_topology_refresh
+    type: BOOLEAN
+    defaults: true
 
 variables:
   years_list: "{{ range(inputs.from_year, inputs.to_year)}}"
@@ -46,6 +49,13 @@ tasks:
       countries: "{{ inputs.countries | join(', ') }}"
       from: "{{ inputs.from_year }}-{{ inputs.from_month }}"
       to: "{{ inputs.to_year }}-{{inputs.to_month}}"
+  - id: refresh_topology
+    type: io.kestra.plugin.core.flow.Subflow
+    runIf: "{{inputs.do_topology_refresh}}"
+    namespace: "{{flow.namespace}}"
+    flowId: ingest_air_quality_sensors_topology
+    wait: true
+    transmitFailed: true
   - id: sync
     type: io.kestra.plugin.git.SyncNamespaceFiles
     url: "{{ kv('GIT_REPO_URL') }}"
@@ -122,4 +132,4 @@ tasks:
               USING `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id
               WHEN MATCHED THEN UPDATE SET value = s.value
               WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);
- 
+                        

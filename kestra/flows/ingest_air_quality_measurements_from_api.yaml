@@ -1,3 +1,22 @@
+######
+### Realtime data ingestion. Ingests data from <from_datetime> to <to_datetime>.
+### Used for realtime data ingestion, meaning it's scheduled to ingest latest
+### N hours of sensor data.
+### Also optionally runs cloud dbt build, given you have paid account
+### and credentials are supplien in KV store.
+###
+### Requires following KV:
+###    AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
+###    GCP_CREDS - Google Cloud Platform service account json
+###    GCP_PROJECT - Google Cloud project
+###    GCP_LOC - Google Cloud project location(example: "US")
+###    GCP_BUCKET - Google Cloud Storage bucket(required default bucket)
+###    DBT_ACCOUNT_ID - (optional) DBT account id
+###    DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
+###    DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
+###    DBT_API_TOKEN - (optional) DBT api token
+######
+
 id: ingest_air_quality_measurements_from_api_microtimeframes
 namespace: company.team
 
@@ -15,12 +34,18 @@ inputs:
   - id: to_datetime
     type: DATETIME
     defaults: "2013-08-09T14:19:00Z"
+  - id: do_topology_refresh
+    type: BOOLEAN
+    defaults: true
   - id: ingest_to_gs
     type: BOOLEAN
     defaults: true
   - id: ingest_to_bq
     type: BOOLEAN
     defaults: true
+  - id: run_dbt_build
+    type: BOOLEAN
+    defaults: false
 
 variables:
   dlt_download_path: "{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/"
@@ -55,6 +80,13 @@ tasks:
       countries: "{{ inputs.countries | join(', ') }}"
       from: "{{ inputs.from_datetime }}"
       to: "{{ inputs.to_datetime }}"
+  - id: refresh_topology
+    type: io.kestra.plugin.core.flow.Subflow
+    runIf: "{{inputs.do_topology_refresh}}"
+    namespace: "{{flow.namespace}}"
+    flowId: ingest_air_quality_sensors_topology
+    wait: true
+    transmitFailed: true
   - id: sync
     type: io.kestra.plugin.git.SyncNamespaceFiles
     runIf: "{{inputs.ingest_to_gs}}"
@@ -120,3 +152,12 @@ tasks:
       USING `{{render(vars.bq_reatime_ext_table)}}` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id
       WHEN MATCHED THEN UPDATE SET value = s.value
       WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);
+  - id: dbt_build
+    type: "io.kestra.plugin.dbt.cloud.TriggerRun"
+    runIf: "{{inputs.run_dbt_build}}"
+    baseUrl: "{{kv('DBT_BASE_URL')}}"
+    accountId: "{{kv('DBT_ACCOUNT_ID')}}"
+    cause: 'Kestra induced'
+    jobId: "{{kv('DBT_BUILD_JOB_ID')}}"
+    token: "{{kv('DBT_API_TOKEN')}}"
+
