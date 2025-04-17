@@ -4,3 +4,4 @@ sk.txt
 *.csv.gz
 *.parquet
 check.py
+.env
