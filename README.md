@@ -36,9 +36,9 @@ sudo docker compose up
 #### Installing the flows ####
 Flows are submitted to the Kestra instance via Github Actions. So you just commit anything and that will automatically transfer all the flows to your Kestra instance.
 For that to work you need to setup secrets in your Github repo.
-KESTRA_INST_ADDR - the address of your VM with the port of your Kestra service(default: 8080).
-KESTRA_USER: username from credentials(basicAuth) you had set in the kestra configuration.
-KESTRA_PWD: password from credentials(basicAuth) you had set in the kestra configuration.
+- KESTRA_INST_ADDR - the address of your VM with the port of your Kestra service(default: 8080).
+- KESTRA_USER: username from credentials(basicAuth) you had set in the kestra configuration.
+- KESTRA_PWD: password from credentials(basicAuth) you had set in the kestra configuration.
 
 Other options:
 - use ./utils/deploy_flow util.
@@ -46,17 +46,17 @@ Other options:
 #### Setting up kestra environment ####
 Before flows could be run, you need to set the following KVs in the company.team namespace.
 
-AQ_API_KEY - OpenAQ API key(requires registration on their platform)
-AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
-GCP_CREDS - Google Cloud Platform service account json
-GCP_PROJECT - Google Cloud project
-GCP_LOC - Google Cloud project location(example: "US")
-GCP_BUCKET - Google Cloud Storage bucket(required default bucket)
-DBT_ACCOUNT_ID - (optional) DBT account id
-DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
-DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
-DBT_API_TOKEN - (optional) DBT api token
-DBT_PROFILES - (optional) DBT profiles.yml file content
+- AQ_API_KEY - OpenAQ API key(requires registration on their platform)
+- AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
+- GCP_CREDS - Google Cloud Platform service account json
+- GCP_PROJECT - Google Cloud project
+- GCP_LOC - Google Cloud project location(example: "US")
+- GCP_BUCKET - Google Cloud Storage bucket(required default bucket)
+- DBT_ACCOUNT_ID - (optional) DBT account id
+- DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
+- DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
+- DBT_API_TOKEN - (optional) DBT api token
+- DBT_PROFILES - (optional) DBT profiles.yml file content
 
 
 #### DBT ####
