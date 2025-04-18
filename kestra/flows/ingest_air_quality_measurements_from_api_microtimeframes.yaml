@@ -2,10 +2,12 @@
 ### Realtime data ingestion. Ingests data from <from_datetime> to <to_datetime>.
 ### Used for realtime data ingestion, meaning it's scheduled to ingest latest
 ### N hours of sensor data.
-### Also optionally runs cloud dbt build, given you have paid account
-### and credentials are supplien in KV store.
+### Also optionally runs cloud dbt build. There are two options: run local DBT on the Kestra VM
+### and run cloud DBT(requires paid account). To run local DBT you only require additional 
+### DBT_PROFILES key-value in the namespace env. Every other DBT* kv is for clod DBT.
 ###
 ### Requires following KV:
+###    GIT repo url - url of the project repository
 ###    AQ_API_KEY - OpenAQ api key
 ###    AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
 ###    GCP_CREDS - Google Cloud Platform service account json

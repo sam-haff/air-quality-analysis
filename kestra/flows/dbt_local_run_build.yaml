@@ -1,3 +1,11 @@
+######
+### Runs "dbt build" locally, using dbt project
+### synced from {{inputs.repo}}/dbt.
+###
+### Requires following KV:
+###    DBT_PROFILES - content of profiles.yml file
+######
+
 id: dbt_local_run_build
 namespace: company.team
 

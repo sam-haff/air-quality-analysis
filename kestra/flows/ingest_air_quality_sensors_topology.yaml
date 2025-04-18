@@ -1,3 +1,18 @@
+######
+### Ingests all present(including already non-active) locations and sensors.
+### The data required for measurements data enrichment
+### and filtering the sensors and locations for which
+### we want to ingest the measurements data.
+###
+### Requires following KV:
+###    GIT repo url - url of the project repository
+###    AQ_API_KEY - OpenAQ api key
+###    AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
+###    GCP_CREDS - Google Cloud Platform service account json
+###    GCP_PROJECT - Google Cloud project
+###    GCP_LOC - Google Cloud project location(example: "US")
+######
+
 id: ingest_air_quality_sensors_topology
 namespace: company.team
 

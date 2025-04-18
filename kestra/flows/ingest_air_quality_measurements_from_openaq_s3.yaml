@@ -1,3 +1,16 @@
+######
+### Years-wide ingestion. Ingests data from year <from_year> to year <to_year>.
+### Used for high-volume history ingestion.
+###
+### Requires following KV:
+###    GIT repo url - url of the project repository
+###    AQ_API_KEY - OpenAQ api key
+###    AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
+###    GCP_CREDS - Google Cloud Platform service account json
+###    GCP_PROJECT - Google Cloud project
+###    GCP_LOC - Google Cloud project location(example: "US")
+
+
 id: ingest_air_quality_measurements_from_openaq_s3
 namespace: company.team
 
