@@ -53,7 +53,15 @@ To build analytics, run:
 dbt build
 ~~~
 ### Pipeline ###
-#### Diagram ####
+#### Diagrams ####
+Flow **ingest_air_quality_measurements_from_openaq_s3**
+
+<img src="https://github.com/user-attachments/assets/63bd5bfb-825b-463b-a2c5-08f49e598df9" width=520 height=220>
+
+Flow **ingest_air_quality_measurements_from_api_microtimeframes**
+
+<img src="https://github.com/user-attachments/assets/68bf7a76-2d0a-4689-a599-b725273cd331" width=520 height=220>
+
 #### Overview ####
 Project relies on the OpenAQ service to collect the date about air quality. Even though OpenAQ is a great platform, the process of collecting data from it turned out to be surprisingly challenging.
 There are two ways of retrieving the data from the service:
