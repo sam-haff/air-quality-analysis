@@ -5,7 +5,7 @@
 with measurements_24h as(
 SELECT *
 FROM {{ref("dim_measurements_with_pollution_ratio")}}
-WHERE CAST(datetime as TIMESTAMP) > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 24 HOUR)
+WHERE CAST(datetime as TIMESTAMP) > TIMESTAMP_SUB(CURRENT_TIMESTAMP(), INTERVAL 72 HOUR)
 )
 SELECT
   measurements.*
