@@ -7,7 +7,7 @@ Report generated with ingestred data for Slovakia, Hungary and Poland.
 
 ### Cloud infrastructure diagram ###
 
-<img src="https://github.com/user-attachments/assets/004c52a7-a163-4eeb-89c6-ec8d65fed128" width=500 height=400>
+<img src="https://github.com/user-attachments/assets/c23b9b15-7e28-4ae5-8037-8e0bcb24e00d" width=500 height=400>
 
 ### Getting started ###
 #### Get the necessary cloud infrastrcucture up and running ####
