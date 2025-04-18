@@ -44,7 +44,19 @@ Other options:
 - use ./utils/deploy_flow util.
 - manually create flows one by one by creating them from UI and copying the content from the repository.
 #### Setting up kestra environment ####
-Before flows could be run, you need to set KVs in the company.team namespace
+Before flows could be run, you need to set the following KVs in the company.team namespace.
+
+AQ_API_KEY - OpenAQ API key(requires registration on their platform)
+AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
+GCP_CREDS - Google Cloud Platform service account json
+GCP_PROJECT - Google Cloud project
+GCP_LOC - Google Cloud project location(example: "US")
+GCP_BUCKET - Google Cloud Storage bucket(required default bucket)
+DBT_ACCOUNT_ID - (optional) DBT account id
+DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
+DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
+DBT_API_TOKEN - (optional) DBT api token
+
 
 #### DBT ####
 Create your DBT cloud project on the project repository and specify subpath as ./dbt. That's it.
