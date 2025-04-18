@@ -1,0 +1,39 @@
+name: Validate & Deploy 
+on:
+  push:
+    branches:
+      - main
+jobs:
+  validate_and_deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Get Code
+        uses: actions/checkout@v3
+      - name: Check, if these exact flows were already deployed
+        id: flows-cache
+        uses: actions/cache@v4
+        with:
+          lookup-only: true
+          path: .gitignore
+          key: ${{ hashFiles('kestra/flows/*.yml') }}-flows-hash
+      - name: Validate
+        uses: kestra-io/validate-action@develop
+        if: steps.flows-cache.outputs.cache-hit != 'true'
+        with:
+          resource: flow
+          directory: kestra/flows
+          server: ${{ secrets.KESTRA_INST_ADDR }}
+          user: ${{secrets.KESTRA_USER}}
+          password: ${{ secrets.KESTRA_PWD }}
+      - name: Deploy
+        uses: kestra-io/deploy-action@master
+        if: steps.flows-cache.outputs.cache-hit != 'true'
+        with:
+          namespace: company.team
+          resource: flow
+          directory: kestra/flows
+          server: ${{ secrets.KESTRA_INST_ADDR }}
+          user: ${{secrets.KESTRA_USER}}
+          password: ${{ secrets.KESTRA_PWD }}
+      
+
