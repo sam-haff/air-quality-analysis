@@ -56,6 +56,7 @@ DBT_ACCOUNT_ID - (optional) DBT account id
 DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
 DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
 DBT_API_TOKEN - (optional) DBT api token
+DBT_PROFILES - (optional) DBT profiles.yml file content
 
 
 #### DBT ####
@@ -68,11 +69,11 @@ dbt build
 #### Diagrams ####
 Flow **ingest_air_quality_measurements_from_openaq_s3**
 
-<img src="https://github.com/user-attachments/assets/63bd5bfb-825b-463b-a2c5-08f49e598df9" width=520 height=220>
+<img src="https://github.com/user-attachments/assets/92b7e215-d23c-4ed0-9a05-40fbaeb32660" width=550 height=220>
 
 Flow **ingest_air_quality_measurements_from_api_microtimeframes**
 
-<img src="https://github.com/user-attachments/assets/331b01cd-7633-45df-acfe-44373309f9c6" width=670 height=220>
+<img src="https://github.com/user-attachments/assets/331b01cd-7633-45df-acfe-44373309f9c6" width=700 height=220>
 
 #### Overview ####
 Project relies on the OpenAQ service to collect the date about air quality. Even though OpenAQ is a great platform, the process of collecting data from it turned out to be surprisingly challenging.
