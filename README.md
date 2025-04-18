@@ -72,7 +72,7 @@ Flow **ingest_air_quality_measurements_from_openaq_s3**
 
 Flow **ingest_air_quality_measurements_from_api_microtimeframes**
 
-<img src="https://github.com/user-attachments/assets/68bf7a76-2d0a-4689-a599-b725273cd331" width=520 height=220>
+<img src="https://github.com/user-attachments/assets/331b01cd-7633-45df-acfe-44373309f9c6" width=670 height=220>
 
 #### Overview ####
 Project relies on the OpenAQ service to collect the date about air quality. Even though OpenAQ is a great platform, the process of collecting data from it turned out to be surprisingly challenging.
@@ -89,10 +89,6 @@ Given these specifics, it was decided to do the following:
 - Realtime data is ingested via API(slow but it's the only source of up to date data). The corresponding flow is scheduled to be run every 8h.
 
 Before any ingestion can happen, first we need the description of the sensors topology. It contains the information about all available locations across the full histroy timeline. It includes information about the country, concrete geo(latitude, longitude) and time range, on which the location was active. All that is useful for the ingestion operations to ingest data selectively(base on the country and/or time range).
-
-The sequence is:
-Initial topology ingestion->Initial S3 ingestion
-Topology ingestion->Realtime data ingestion(every 8h)
 
 ### Motivation ###
 Having a dataplatform that provides readily available data in the suitable for processing format is crucial for extracting insights in every data related field.
