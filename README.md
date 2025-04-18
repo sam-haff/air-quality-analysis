@@ -1,9 +1,9 @@
 ### AIRQ ###
 Air quality dashboard and analysis project.
 ### Motivation ###
-Having a data platform that provides readily available data in a format suitable for processing is essential for extracting insights across all data-related fields.
-Air pollution is a pressing issue today, and to properly address it, we first need access to reliable data. Without data, it's as if the problem doesn't exist — data serves as our eyes, enabling us to perceive and understand the issue.
-However, simply having data isn't enough. It must remain relevant, be consistently updated, and be stored in formats that allow for efficient processing and analysis.
+Having a data platform that provides readily available data in a format suitable for processing is essential for extracting insights across all data-related fields.\
+Air pollution is a pressing issue today, and to properly address it, we first need access to reliable data. Without data, it's as if the problem doesn't exist — data serves as our eyes, enabling us to perceive and understand the issue.\
+However, simply having data isn't enough. It must remain relevant, be consistently updated, and be stored in formats that allow for efficient processing and analysis.\
 This project aims to solve those challenges for air quality data — ensuring accessibility, relevance, and usability — while also developing analytics that clearly communicate the current state of air pollution.
 ### Report ###
 Report generated with ingestred data for Slovakia, Hungary and Poland. [Looker](https://lookerstudio.google.com/reporting/6e8121ae-214b-4610-9237-506421e5d3c8)
