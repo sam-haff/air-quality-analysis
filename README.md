@@ -1,7 +1,14 @@
 ### AIRQ ###
 Air quality dashboard and analysis project.
 ### Report ###
+Report generated with ingestred data for Slovakia, Hungary and Poland.
+
+<img src="https://github.com/user-attachments/assets/71e07766-fc3a-472b-90ba-332732c29e35" width=600 height=400>
+
 ### Cloud infrastructure diagram ###
+
+<img src="https://github.com/user-attachments/assets/004c52a7-a163-4eeb-89c6-ec8d65fed128" width=500 height=400>
+
 ### Reproduce ###
 #### Get the necessary cloud infrastrcucture up and running ####
 Since the project uses Terraform, that's quite simple to do.
@@ -33,7 +40,12 @@ KESTRA_INST_ADDR - the address of your VM with the port of your Kestra service(d
 KESTRA_USER: username from credentials(basicAuth) you had set in the kestra configuration.
 KESTRA_PWD: password from credentials(basicAuth) you had set in the kestra configuration.
 
-Alternatively, you can manually create flows one by one by creating them from UI and copying the content from the repository.
+Other options:
+- use ./utils/deploy_flow util.
+- manually create flows one by one by creating them from UI and copying the content from the repository.
+#### Setting up kestra environment ####
+Before flows could be run, you need to set KVs in the company.team namespace
+
 #### DBT ####
 Create your DBT cloud project on the project repository and specify subpath as ./dbt. That's it.
 To build analytics, run:
@@ -63,4 +75,4 @@ Initial topology ingestion->Initial S3 ingestion
 Topology ingestion->Realtime data ingestion(every 8h)
 
 ### Motivation ###
-Ability to analyze and visualize hazards related to the changes in the current air quality.
+Having a dataplatform that provides readily available data in the suitable for processing format is crucial for extracting insights from air quality data. That's exactly what project thrives to achieve.
