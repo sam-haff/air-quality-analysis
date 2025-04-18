@@ -6,11 +6,13 @@
 ### and credentials are supplien in KV store.
 ###
 ### Requires following KV:
+###    AQ_API_KEY - OpenAQ api key
 ###    AQ_DATA_BUCKET_URL - url of the bucket in the following form: "gs://bucket-name/"
 ###    GCP_CREDS - Google Cloud Platform service account json
 ###    GCP_PROJECT - Google Cloud project
 ###    GCP_LOC - Google Cloud project location(example: "US")
 ###    GCP_BUCKET - Google Cloud Storage bucket(required default bucket)
+###    DBT_PROFILES - (optional) Required for local DBT build, content of profiles.yml file
 ###    DBT_ACCOUNT_ID - (optional) DBT account id
 ###    DBT_BUILD_JOB_ID - (optional) Id of DBT job to run
 ###    DBT_BASE_URL - (optional) DBT base url(url of your dbt intance)
@@ -46,6 +48,10 @@ inputs:
   - id: run_dbt_build
     type: BOOLEAN
     defaults: false
+  - id: run_cloud_dbt_build
+    type: BOOLEAN
+    defaults: false
+
 
 variables:
   dlt_download_path: "{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/"
@@ -90,6 +96,7 @@ tasks:
   - id: sync
     type: io.kestra.plugin.git.SyncNamespaceFiles
     runIf: "{{inputs.ingest_to_gs}}"
+    delete: true
     url: "{{ kv('GIT_REPO_URL') }}"
     namespace: "{{ flow.namespace }}"
     gitDirectory: "pipeline/aq_measurements_lake_ingest"
@@ -102,6 +109,7 @@ tasks:
     taskRunner:
       type: io.kestra.plugin.core.runner.Process
     env:
+      AQ_API_KEY: "{{kv('AQ_API_KEY')}}"
       AQ_DATA_BUCKET_URL: "{{ kv('AQ_DATA_BUCKET_URL') }}"
       AQ_FROM_DATETIME_UTC: "{{ inputs.from_datetime }}"
       AQ_TO_DATETIME_UTC: "{{inputs.to_datetime }}"
@@ -152,12 +160,20 @@ tasks:
       USING `{{render(vars.bq_reatime_ext_table)}}` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id
       WHEN MATCHED THEN UPDATE SET value = s.value
       WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);
+  - id: dbt_local_build
+    type: io.kestra.plugin.core.flow.Subflow
+    runIf: "{{inputs.run_dbt_build}}"
+    namespace: "{{flow.namespace}}"
+    flowId: dbt_local_run_build
+    inputs:
+      repo: "{{kv('GIT_REPO_URL')}}"
+    wait: true
+    transmitFailed: true
   - id: dbt_build
     type: "io.kestra.plugin.dbt.cloud.TriggerRun"
-    runIf: "{{inputs.run_dbt_build}}"
+    runIf: "{{inputs.run_cloud_dbt_build}}"
     baseUrl: "{{kv('DBT_BASE_URL')}}"
     accountId: "{{kv('DBT_ACCOUNT_ID')}}"
     cause: 'Kestra induced'
     jobId: "{{kv('DBT_BUILD_JOB_ID')}}"
     token: "{{kv('DBT_API_TOKEN')}}"
-
