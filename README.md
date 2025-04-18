@@ -9,7 +9,7 @@ Report generated with ingestred data for Slovakia, Hungary and Poland.
 
 <img src="https://github.com/user-attachments/assets/004c52a7-a163-4eeb-89c6-ec8d65fed128" width=500 height=400>
 
-### Reproduce ###
+### Getting started ###
 #### Get the necessary cloud infrastrcucture up and running ####
 Since the project uses Terraform, that's quite simple to do.
 You should just change the default values in the file <em>./terraform/variables.tf</em> to the values that make sense for you.
@@ -67,8 +67,8 @@ Project relies on the OpenAQ service to collect the date about air quality. Even
 There are two ways of retrieving the data from the service:
 1) API
 2) S3 bucket
-API itself is a very convenient way of extracting the data, at least it seemed so on the paper. In reality, for unpaid accounts, it has pretty agressive rate limits. And with certain access pattern that really becomes a big deal. For example, giving one location and sensor you can extract 1000 records per cost of 1 in terms of rate limit(which is 60 requests per minute). But if you need 1 record from each location and sensor it gives you 60 records per minute max. Even with good pattern not everything is transparent, sometime the service throws a 503 error after 15k records telling that the requested workload for the request is too high. But it wasn't too high for previous 15 1k records requests. And also changing the page limit to 300 doesn't change anything, it still gives status code 500 after 15k records.
-So I thought S3 would be an absolute perfect solution with no drawbacks since it's stated that it's update oh hourly basis. But 
+API itself is a very convenient way of extracting the data, at least it seemed so on the paper. In reality, for unpaid accounts, it has pretty agressive rate limits. And with certain access pattern that really becomes a big deal. For example, giving one location and sensor you can extract 1000 records per cost of 1 in terms of rate limit(which is 60 requests per minute). But if you need 1 record from each location and sensor it gives you 60 records per minute max. Even with good pattern not everything is transparent, sometime the service throws a 503 error after 15k records telling that the requested workload for the request is too high. But it wasn't too high for previous 15 1k records requests. And also changing the page limit to 300 doesn't change anything, it still gives status code 500 after the exact same 15k records.
+So, I thought S3 might a solution since it's stated that it's updated on hourly basis. But 
 - It isn't(or updates come in some strange specific pattern, may be it prioritises some sensors/locations over the others)
 - It contains millions of files, and it makes the download speed not that good, as I was initially anticipating.
 
@@ -83,4 +83,7 @@ Initial topology ingestion->Initial S3 ingestion
 Topology ingestion->Realtime data ingestion(every 8h)
 
 ### Motivation ###
-Having a dataplatform that provides readily available data in the suitable for processing format is crucial for extracting insights from air quality data. That's exactly what project thrives to achieve.
+Having a dataplatform that provides readily available data in the suitable for processing format is crucial for extracting insights in every data related field.
+As air pollution problem is clearly very relevant nowadays, to able to acknowledge it we need the data. Otherwise, if we don't have the data it the same if we didn't see a problem. The data is our eyes in some sense.
+Sadly, having the data is not enough, as it also needs to stay relevant and be stored in the right format for efficient updates and processing.
+This projects aims to achieve that for the air quality data, while also developing the analytics to present the state of current air pollution as clear as possible.
