@@ -15,6 +15,17 @@ Report generated with ingestred data for Slovakia, Hungary and Poland. [Looker](
 <img src="https://github.com/user-attachments/assets/c23b9b15-7e28-4ae5-8037-8e0bcb24e00d" width=500 height=400>
 
 ### Getting started ###
+#### Access ####
+Project assumes you have a service account with the following roles/rights on it:
+- Storage Admin
+- Compute Admin
+- BigQuery Admin
+- SQL Admin
+- Cloud SQL Admin
+- Compute Network Admin
+- Network Management Admin
+- Networks Admin
+- Service Networking Admin
 #### Get the necessary cloud infrastrcucture up and running ####
 Since the project uses Terraform, that's quite simple to do.
 You should just change the default values in the file <em>./terraform/variables.tf</em> to the values that make sense for you.
