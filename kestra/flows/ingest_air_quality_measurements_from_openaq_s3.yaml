@@ -129,7 +129,7 @@ tasks:
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
               MERGE `{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements` T
-              USING `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id
+              USING `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id AND T.sensors_id = S.sensors_id
               WHEN MATCHED THEN UPDATE SET value = s.value
               WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);
                         
