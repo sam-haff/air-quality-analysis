@@ -5,3 +5,4 @@ sk.txt
 *.parquet
 check.py
 .env
+profiles.yml

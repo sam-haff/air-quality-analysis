@@ -1,9 +1,6 @@
 id: ingest_air_quality_sensors_topology
 namespace: company.team
 
-concurrency:
-  limit: 1
-
 pluginDefaults:
   - type: io.kestra.plugin.gcp
     values:
@@ -11,7 +8,10 @@ pluginDefaults:
       projectId: "{{kv('GCP_PROJECT')}}"
       location: "{{kv('GCP_LOC')}}"
       bucket: "{{kv('GCP_BUCKET')}}"
-  
+      
+concurrency:
+  limit: 1
+
 tasks:
   - id: sync
     type: io.kestra.plugin.git.SyncNamespaceFiles
@@ -32,3 +32,43 @@ tasks:
       - pip install -r requirements.txt
     commands:
       - python aq_topology_ingest.py
+  
+  - id: create_tmp_external_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE EXTERNAL TABLE `{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.tmp_locs_ext`
+      OPTIONS(format="PARQUET", uris=['{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/sensors_topology/locs/*.parquet']);
+  - id: create_and_load_target_mat_topology_table
+    type: io.kestra.plugin.gcp.bigquery.Query
+    sql: |
+      CREATE OR REPLACE TABLE `{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.sensors_topology_locs`
+      (
+        id INT64,
+        name STRING,
+        timezone STRING,
+        country_id INT64,
+        country_code STRING,
+        country_name STRING,
+        owner_name STRING,
+        provider_id INT64,
+        provider_name STRING,
+        lat FLOAT64,
+        lon FLOAT64,
+        datetime_first_utc DATETIME,
+        datetime_last_utc DATETIME
+      ) as 
+      (SELECT id as id,
+        name as name,
+        timezone as timezone,
+        country__id as country_id,
+        country__code as country_code,
+        country__name as country_name,
+        owner__name as owner_name,
+        provider__id as provider_id,
+        provider__name as provider_name,
+        coordinates__latitude as lat,
+        coordinates__longitude as lon,
+        CAST(datetime_first__utc as DATETIME) as datetime_first_utc,
+        CAST(datetime_last__utc as DATETIME) as datetime_last_utc
+      FROM `{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.tmp_locs_ext`
+      );
