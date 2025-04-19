@@ -76,11 +76,10 @@ Before flows could be run, you need to set the following KVs in the company.team
 
 
 #### DBT ####
-Create your DBT cloud project on the project repository and specify subpath as ./dbt. That's it.
-To build analytics, run:
-~~~
-dbt build
-~~~
+You can build analyics with executing 'dbt_local_run_build' flow. \
+To be able to use this flow, you will need correct 'profiles.yaml' file, which contains correct setup for the BigQuery connection. Given you already have the file, you now need to copy its contents to your new Kestra KV 'DBT_PROFILES'.
+Indirectly, it's called from realtime ingestion flow, but it should be explicitly enabled and you still need to set up all the required KVs(see comments in .yaml).\
+And, of course, you can build the project as usual, both on the local machine and CloudDBT.
 ### Pipeline ###
 #### Diagrams ####
 Flow **ingest_air_quality_measurements_from_openaq_s3**
