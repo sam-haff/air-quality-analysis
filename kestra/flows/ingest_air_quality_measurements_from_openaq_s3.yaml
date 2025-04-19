@@ -25,15 +25,16 @@ inputs:
   - id: from_year
     type: INT
     defaults: 2024
-  - id: from_month
-    type: INT
-    defaults: 1
   - id: to_year
     type: INT
     defaults: 2025
-  - id: to_month
-    type: INT
-    defaults: 3
+#  - id: to_month
+#    type: INT
+#    defaults: 3
+#  - id: from_month
+#    type: INT
+#    defaults: 1
+
   - id: ingest_to_gs
     type: BOOLEAN
     defaults: true
@@ -60,8 +61,8 @@ tasks:
     type: io.kestra.plugin.core.execution.Labels
     labels:
       countries: "{{ inputs.countries | join(', ') }}"
-      from: "{{ inputs.from_year }}-{{ inputs.from_month }}"
-      to: "{{ inputs.to_year }}-{{inputs.to_month}}"
+      from: "{{ inputs.from_year }}" # "-{{ inputs.from_month }}"
+      to: "{{ inputs.to_year }}" # "-{{inputs.to_month}}"
   - id: refresh_topology
     type: io.kestra.plugin.core.flow.Subflow
     runIf: "{{inputs.do_topology_refresh}}"
@@ -91,9 +92,9 @@ tasks:
           AQ_DATA_BUCKET_URL: "{{ kv('AQ_DATA_BUCKET_URL') }}"
           AQ_COUNTRY_NAME: "{{ taskrun.value }}"
           AQ_FROM_YEAR: "{{ inputs.from_year }}"
-          AQ_FROM_MO: "{{ inputs.from_month }}"
+          #AQ_FROM_MO: "{{ inputs.from_month }}"
           AQ_TO_YEAR: "{{ inputs.to_year }}"
-          AQ_TO_MO: "{{ inputs.to_month }}"
+          #AQ_TO_MO: "{{ inputs.to_month }}"
 
           AWS_ACCESS_KEY_ID: "{{ kv('AWS_KEY') }}"
           AWS_SECRET_ACCESS_KEY: "{{ kv('AWS_SECRET') }}"

@@ -75,12 +75,14 @@ def openaq_measurements():
         sensors = list(country_sensors.itertuples())
         for t in sensors:
             current_sensor = t.id_sensor
+            if t.curr_page is None:
+                t.curr_page = 1
 
             client = RESTClient(
                 base_url=f"https://api.openaq.org/v3/sensors/{current_sensor}/measurements",
                 headers={"X-API-Key":aq_api_key},
                 paginator=PageNumberPaginator(
-                    base_page=1,
+                    base_page=t.curr_page,
                     total_path=None
                 )
             )
@@ -95,6 +97,7 @@ def openaq_measurements():
                         v['sensors_id'] = t.id_sensor
                         v['location_id'] = t.id_loc
                         v['location'] = t.name_loc
+                    t.curr_page += 1
                     yield page
                     total_loaded += api_limit
                     print(f"Downloaded ~{api_limit} measurements. Total loaded: ", total_loaded)
