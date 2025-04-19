@@ -31,6 +31,7 @@ Since the project uses Terraform, that's quite simple to do.
 You should just change the default values in the file <em>./terraform/variables.tf</em> to the values that make sense for you.
 Then, given you have <em>Terraform</em> installed, you run 
 ```
+terraform init
 terrafrom apply
 ```
 #### SQL ####
