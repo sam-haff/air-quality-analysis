@@ -11,6 +11,7 @@
 ###    GCP_CREDS - Google Cloud Platform service account json
 ###    GCP_PROJECT - Google Cloud project
 ###    GCP_LOC - Google Cloud project location(example: "US")
+###    BQ_DATASET - bigquery dataset, that will contain tables with ingested data
 ######
 
 id: ingest_air_quality_sensors_topology
@@ -26,6 +27,10 @@ pluginDefaults:
       
 concurrency:
   limit: 1
+
+variables:
+  bq_topology_table: "{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.sensors_topology_locs"
+  bq_ext_table: "{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.tmp_locs_ext"
 
 tasks:
   - id: sync
@@ -51,12 +56,12 @@ tasks:
   - id: create_tmp_external_table
     type: io.kestra.plugin.gcp.bigquery.Query
     sql: |
-      CREATE OR REPLACE EXTERNAL TABLE `{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.tmp_locs_ext`
+      CREATE OR REPLACE EXTERNAL TABLE `{{render(vars.bq_ext_table)}}`
       OPTIONS(format="PARQUET", uris=['{{ kv('AQ_DATA_BUCKET_URL') }}aq/raw/sensors_topology/locs/*.parquet']);
   - id: create_and_load_target_mat_topology_table
     type: io.kestra.plugin.gcp.bigquery.Query
     sql: |
-      CREATE OR REPLACE TABLE `{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.sensors_topology_locs`
+      CREATE OR REPLACE TABLE `{{render(vars.bq_topology_table)}}`
       (
         id INT64,
         name STRING,

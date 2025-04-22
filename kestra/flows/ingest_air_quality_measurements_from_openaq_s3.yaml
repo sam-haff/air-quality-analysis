@@ -9,7 +9,8 @@
 ###    GCP_CREDS - Google Cloud Platform service account json
 ###    GCP_PROJECT - Google Cloud project
 ###    GCP_LOC - Google Cloud project location(example: "US")
-
+###    BQ_DATASET - bigquery dataset, that will contain ingested data
+######
 
 id: ingest_air_quality_measurements_from_openaq_s3
 namespace: company.team
@@ -47,6 +48,9 @@ inputs:
 
 variables:
   years_list: "{{ range(inputs.from_year, inputs.to_year)}}"
+  bq_measurements_table: "{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.m_measurements"
+  bq_ext_table: "{{kv('GCP_PROJECT')}}.{{kv('BQ_DATASET')}}.tmp_ext"
+
 
 pluginDefaults:
   - type: io.kestra.plugin.gcp
@@ -110,7 +114,7 @@ tasks:
           - id: create_ext_table
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
-              CREATE OR REPLACE EXTERNAL TABLE `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext`(
+              CREATE OR REPLACE EXTERNAL TABLE `{{render(vars.bq_ext_table)}}`(
                 location_id INT64,
                 sensors_id INT64,
                 location STRING,
@@ -124,7 +128,7 @@ tasks:
           - id: create_target_resident_table
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
-              CREATE TABLE IF NOT EXISTS `{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements`(
+              CREATE TABLE IF NOT EXISTS `{{render(vars.bq_measurements_table)}}`(
                 location_id INT64,
                 sensors_id INT64,
                 location STRING,
@@ -142,8 +146,8 @@ tasks:
           - id: from_ext_to_resident_table
             type: "io.kestra.plugin.gcp.bigquery.Query"
             sql: |
-              MERGE `{{kv('GCP_PROJECT')}}.bq_dataset.m_measurements` T
-              USING `{{kv('GCP_PROJECT')}}.bq_dataset.tmp_ext` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id AND T.sensors_id = S.sensors_id
+              MERGE `{{render(vars.bq_measurements_table)}}` T
+              USING `{{render(vars.bq_ext_table)}}` S ON T.datetime = CAST(S.datetime AS DATETIME) AND T.parameter = S.parameter AND T.location_id = S.location_id AND T.sensors_id = S.sensors_id
               WHEN MATCHED THEN UPDATE SET value = s.value
               WHEN NOT MATCHED THEN INSERT (location_id, sensors_id, location, datetime, lat,lon, parameter,units,value) VALUES(location_id, sensors_id, location, CAST(datetime AS DATETIME), lat,lon, parameter,units,value);
                         
